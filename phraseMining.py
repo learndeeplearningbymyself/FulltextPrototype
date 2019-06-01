@@ -9,8 +9,8 @@ class PhraseMining(object):
     """
     PhraseMining performs frequent pattern mining followed by agglomerative clustering
     on the input corpus and then stores the results in intermediate files.
-    :param file_name:
-        path to the input corpus.
+    :param input_string:
+        input string.
     :param min_support:
         minimum support threshold which must be satisfied by each phrase during frequent
         pattern mining.
@@ -20,14 +20,14 @@ class PhraseMining(object):
         threshold for the significance score.
     """
 
-    def __init__(self, file_name, min_support=10, max_phrase_size=40, alpha=4):
+    def __init__(self, input_string, min_support=10, max_phrase_size=40, alpha=4):
         self.min_support = min_support
         self.max_phrase_size = max_phrase_size
         self.alpha = alpha
-        self.file_name = file_name
+        self.input_string = input_string
 
     def mine(self):
-        return self._run_phrase_mining(self.min_support, self.max_phrase_size, self.alpha, self.file_name)
+        return self._run_phrase_mining(self.min_support, self.max_phrase_size, self.alpha, self.input_string)
 
     def _frequentPatternMining(self, documents, min_support, max_phrase_size, word_freq, active_indices):
         """
@@ -237,26 +237,21 @@ class PhraseMining(object):
                 document_of_phrases.append(phrases_of_words)
             self.partitioned_docs.append(document_of_phrases)
 
-    def _preprocess_input(self, filename, stopwords):
+    def _preprocess_input(self, inputstring, stopwords):
         """
         Performs preprocessing on the input document. Includes stopword removal.
         """
-        f = open(filename, 'r')
         documents = []
         document_range = []
-        i = 0
-        num_docs = 0
-        for line in f:
-            line_lowercase = line.lower()
-            sentences_no_punc = re.split(r"[.,;!?]", line_lowercase)
-            stripped_sentences = []
-            for sentence in sentences_no_punc:
-                stripped_sentences.append(sentence)
-            sentences_no_punc = stripped_sentences
-            i += len(sentences_no_punc)
-            document_range.append(i)
-            documents.extend(sentences_no_punc)
-            num_docs += 1
+
+        line_lowercase = inputstring.lower()
+        sentences_no_punc = re.split(r"[.,;!?]", line_lowercase)
+        stripped_sentences = []
+        for sentence in sentences_no_punc:
+            stripped_sentences.append(sentence)
+        sentences_no_punc = stripped_sentences
+        document_range.append(len(sentences_no_punc))
+        documents.extend(sentences_no_punc)
 
         documents = [doc.strip() for doc in documents]
 
@@ -267,9 +262,9 @@ class PhraseMining(object):
 
         documents = documents2[:]
 
-        return documents, document_range, num_docs
+        return documents, document_range
 
-    def _run_phrase_mining(self, min_support, max_phrase_size, alpha, file_name):
+    def _run_phrase_mining(self, min_support, max_phrase_size, alpha, input_string):
         """
         Runs the phrase mining algorithm.
 
@@ -277,12 +272,12 @@ class PhraseMining(object):
         @min_support: minimum support threshold which must be satisfied by each phrase.
         @max_phrase_size: maximum allowed phrase size
         @alpha: threshold for the significance score
-        @file_name: path to the input corpus
+        @input_string: input string
         """
 
         stopwords = self._get_stopwords()
 
-        documents, document_range, num_docs = self._preprocess_input(file_name, stopwords)
+        documents, document_range = self._preprocess_input(input_string, stopwords)
 
         #calculate frequency of all words
         total_words, word_freq, active_indices = self._get_word_freq(documents)
