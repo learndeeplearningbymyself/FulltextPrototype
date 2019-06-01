@@ -1,11 +1,9 @@
 import phraseMining
-import sys
 import utils
 
-arguments = sys.argv
 print('Running Phrase Mining...')
 
-file_name = arguments[1]
+file_name = "data.txt"
 f = open(file_name)
 input_string = ""
 for line in f:
